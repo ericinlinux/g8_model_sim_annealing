@@ -1,0 +1,16 @@
+sso, id
+sse, id
+ssc, id
+srse, ssum
+srso, ssum
+srsc, id
+pp, ssum
+pse, ssum
+pso, ssum
+fse, id
+ese, id
+eso, id
+wsc, id
+wse, 0
+wso, 0
+pers, 0

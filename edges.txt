@@ -1,0 +1,12 @@
+conf_media, susp_media, -1
+media_pos_sent, sent_pvv, 1
+media_neg_sent, sent_pvv, -1
+num_posts, awareness_pvv, 1
+sent_pvv, sent_pvv, 1
+awareness_pvv, awareness_pvv, 1
+sent_pvv, awareness_pvv, 1
+awareness_pvv, sent_pvv, 1
+sent_pvv, conf_pvv, 1
+conf_pvv, sent_pvv, 1
+susp_media, conf_pvv, 1
+conf_pvv, polls, 1
