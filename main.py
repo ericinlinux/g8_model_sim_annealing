@@ -234,7 +234,7 @@ def main():
         T = T*alpha
 
     plot_results(parameters, cost_hist, parameters_hist)
-
+    
     return parameters, cost_hist, parameters_hist
 
 if __name__ == "__main__":
