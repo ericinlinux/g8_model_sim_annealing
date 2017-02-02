@@ -9,13 +9,14 @@ def generate_graph(df, weightList=None):
     graph = nx.DiGraph()
     edges_f = open('edges.txt')
     nodes_f = open('nodes.txt')
+    traits_f = open('./data/personality.txt')
 
     # Insert nodes
     for line in nodes_f:
         node, func = line.replace(" ", "").strip().split(',')
         # Node not included
         if node not in graph.nodes():
-            if node == 'polls':
+            if node == 'eso1' or node == 'eso2' or node == 'ese':
                 graph.add_node(node, attr_dict={'pos': 'output', 'func': func, 'status':{}} )
             elif func == 'id' or func == 'ssum':
                 graph.add_node(node, attr_dict={'pos': 'inner', 'func': func, 'status':{}} )
@@ -40,13 +41,25 @@ def generate_graph(df, weightList=None):
             graph.add_edge(source, target, weight=float(w))
             outWeightList.append(((source, target), float(w)))
 
+    persDict = {}
+    for line in traits_f:
+        trait, value = line.replace(" ", "").strip().split(',')
+        persDict[trait] = float(value)
 
     # Initiating the information in the graph
-    graph.node['conf_media']['status'] = df['trust in media'].fillna(0)
-    graph.node['media_pos_sent']['status'] = df['Pospolarity'].fillna(0)
-    graph.node['media_neg_sent']['status'] = df['Negpolarity'].fillna(0)
-    graph.node['num_posts']['status'] = df['Posts'].fillna(0)
-    graph.node['polls']['emp_data'] = df['Polls']
+    graph.node['pers']['traits'] = pd.Series(persDict)
+
+    graph.node['wsc1']['status'] = df['wsc1']
+    graph.node['wsc2']['status'] = df['wsc2']
+    graph.node['wso1']['status'] = df['wso1']
+    graph.node['wso2']['status'] = df['wso2']
+
+    graph.node['wse']['status'] = df['wse']
+
+
+    graph.node['ese']['emp_data'] = df['ese']
+    graph.node['eso1']['emp_data'] = df['eso1']
+    graph.node['eso2']['emp_data'] = df['eso2']
 
     return graph, outWeightList
 
@@ -63,6 +76,10 @@ def neighbor(parameters):
     new_parameters = []
 
     for p in parameters:
+        new_p = p[1] + ((sup - inf) * random() + inf)
+        new_p = minn if new_p < minn else maxn if new_p > maxn else new_p
+        new_parameters.append((p[0], new_p))
+        '''
         if p[0][0] == 'conf_media' and p[0][1] == 'susp_media':
             minn = -1.0
             maxn = -0.000000001
@@ -87,7 +104,7 @@ def neighbor(parameters):
             new_p = p[1] + ((sup - inf) * random() + inf)
             new_p = minn if new_p < minn else maxn if new_p > maxn else new_p
             new_parameters.append((p[0], new_p))
-
+        '''
     #parameters[0] = parameters[0] + ((sup-inf)*random() + inf)
     #parameters[0] = minn if parameters[0] < minn else maxn if parameters[0] > maxn else parameters[0]
     ##parameters[1] = parameters[1] + ((sup - inf) * random() + inf)
@@ -106,22 +123,9 @@ def acceptance_probability(old_cost, new_cost, T):
 
 def prep_df():
     # Building the dataframe with all the data from the files
-    df = pd.read_csv('./data/inputmodel1.csv', sep=';')
-    df.index = df['Week'] - 1
-    # Fill the gaps using reindex
-    df = df.reindex(index=range(0, 210))
-    df = df[['Posts', 'Pospolarity', 'Negpolarity', 'trust in media']]
-    df['trust in media'] = df['trust in media'] / 100
-
-    polls = pd.read_csv('./data/inputmodel2.csv')
-    polls.index = polls.Week - 1
-
-    df['Polls'] = polls['PVV']
-
-    # Drop the last weeks without data from the posts
-    df = df.drop(range(203, 210))
-
-    return df
+    df = pd.read_excel('./data/Fake data.xlsx')
+    df_relevant = df[[u'wse', u'wso1', u'wso2', u'wsc1', u'wsc2', u'ese', u'eso1', u'eso2']]
+    return df_relevant
 
 
 def plot_results(parameters, cost_hist, parameters_hist):
@@ -195,9 +199,9 @@ def main():
     parameters_hist.append(initial_parameters)
 
     T = 1.0
-    T_min = 0.00001
+    T_min = 0.001
     # original = 0.9
-    alpha = 0.99
+    alpha = 0.9
     parameters = initial_parameters
 
     while T > T_min:
@@ -206,7 +210,7 @@ def main():
 
         i = 1
         # original = 100
-        while i <= 300:
+        while i <= 100:
             new_parameters = list(neighbor(parameters))
             graph, parameters = generate_graph(df, new_parameters)
             g = m.run_model(graph)
